@@ -109,7 +109,7 @@ const Index = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-emergency to-accent bg-clip-text text-transparent">
-                Guardian AI
+                Zero Touch SOS
               </h1>
               <p className="text-muted-foreground mt-1">
                 Advanced Emergency Response System
