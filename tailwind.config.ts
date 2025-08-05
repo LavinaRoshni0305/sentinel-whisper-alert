@@ -52,6 +52,13 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				emergency: {
+					DEFAULT: 'hsl(var(--emergency))',
+					glow: 'hsl(var(--emergency-glow))'
+				},
+				safe: 'hsl(var(--safe))',
+				success: 'hsl(var(--success))',
+				warning: 'hsl(var(--warning))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -84,11 +91,34 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-emergency': {
+					'0%, 100%': { 
+						opacity: '1',
+						boxShadow: '0 0 0 0 hsl(var(--emergency) / 0.7)'
+					},
+					'50%': { 
+						opacity: '0.8',
+						boxShadow: '0 0 0 10px hsl(var(--emergency) / 0)'
+					}
+				},
+				'shake': {
+					'10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+					'20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+					'30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+					'40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+				},
+				'glow': {
+					'0%, 100%': { filter: 'brightness(1) drop-shadow(0 0 5px hsl(var(--emergency) / 0.3))' },
+					'50%': { filter: 'brightness(1.1) drop-shadow(0 0 20px hsl(var(--emergency) / 0.6))' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-emergency': 'pulse-emergency 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+				'shake': 'shake 0.82s cubic-bezier(.36,.07,.19,.97) both',
+				'glow': 'glow 3s ease-in-out infinite'
 			}
 		}
 	},
