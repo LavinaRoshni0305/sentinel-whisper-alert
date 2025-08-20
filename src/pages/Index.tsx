@@ -2,12 +2,10 @@ import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { EmergencyButton } from "@/components/EmergencyButton";
 import { ContactManager } from "@/components/ContactManager";
 import { DetectionSettings, type DetectionSettings as DetectionSettingsType } from "@/components/DetectionSettings";
 import { LocationTracker } from "@/components/LocationTracker";
-import { useBackgroundDetection } from "@/hooks/useBackgroundDetection";
 import { 
   Shield, 
   Users, 
@@ -15,11 +13,7 @@ import {
   MapPin, 
   Activity,
   AlertTriangle,
-  CheckCircle2,
-  Radio,
-  Eye,
-  Power,
-  PowerOff
+  CheckCircle2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -48,6 +42,19 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { toast } = useToast();
 
+  useEffect(() => {
+    // Auto-start monitoring if conditions are met
+    if (contacts.length > 0 && location && detectionSettings) {
+      const enabledMethods = Object.entries(detectionSettings).filter(
+        ([key, value]) => key.includes('Enabled') && value
+      ).length;
+      
+      if (enabledMethods > 0) {
+        setIsMonitoring(true);
+      }
+    }
+  }, [contacts, location, detectionSettings]);
+
   const handleEmergency = async () => {
     setEmergencyMode(true);
     
@@ -66,14 +73,6 @@ const Index = () => {
       // For now, we'll just log and show toast notifications
     }
 
-    // Send message to service worker for notification
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'EMERGENCY_TRIGGERED',
-        payload: { contactCount: contacts.length }
-      });
-    }
-
     toast({
       title: "Emergency Alert Sent!",
       description: `Alert sent to ${contacts.length} emergency contact${contacts.length !== 1 ? 's' : ''}`,
@@ -90,48 +89,10 @@ const Index = () => {
     }, 300000);
   };
 
-  // Background detection hook
-  const {
-    isBackgroundActive,
-    startBackgroundDetection,
-    stopBackgroundDetection,
-    detectionStatus
-  } = useBackgroundDetection(detectionSettings, handleEmergency);
-
-  useEffect(() => {
-    // Auto-start monitoring if conditions are met
-    if (contacts.length > 0 && location && detectionSettings) {
-      const enabledMethods = Object.entries(detectionSettings).filter(
-        ([key, value]) => key.includes('Enabled') && value
-      ).length;
-      
-      if (enabledMethods > 0) {
-        setIsMonitoring(true);
-      }
-    }
-  }, [contacts, location, detectionSettings]);
-
   const getSystemStatus = () => {
     if (emergencyMode) return { text: 'Emergency Active', color: 'emergency', icon: AlertTriangle };
-    if (isBackgroundActive) return { text: 'Background Monitoring', color: 'safe', icon: CheckCircle2 };
-    if (isMonitoring) return { text: 'Ready to Monitor', color: 'safe', icon: CheckCircle2 };
+    if (isMonitoring) return { text: 'Monitoring Active', color: 'safe', icon: CheckCircle2 };
     return { text: 'System Inactive', color: 'warning', icon: Activity };
-  };
-
-  const toggleBackgroundDetection = async () => {
-    if (isBackgroundActive) {
-      stopBackgroundDetection();
-    } else {
-      if (!isMonitoring) {
-        toast({
-          title: "Setup Required",
-          description: "Complete the setup first before enabling background detection",
-          variant: "destructive",
-        });
-        return;
-      }
-      await startBackgroundDetection();
-    }
   };
 
   const status = getSystemStatus();
@@ -154,61 +115,14 @@ const Index = () => {
                 Advanced Emergency Response System
               </p>
             </div>
-            <div className="flex items-center gap-4">
-              <Badge 
-                variant="outline" 
-                className={`text-lg px-4 py-2 border-${status.color}/50 text-${status.color} animate-glow`}
-              >
-                <StatusIcon className={`w-5 h-5 mr-2 ${emergencyMode ? 'animate-pulse' : ''}`} />
-                {status.text}
-              </Badge>
-              
-              {isMonitoring && (
-                <Button
-                  onClick={toggleBackgroundDetection}
-                  variant={isBackgroundActive ? "destructive" : "default"}
-                  size="sm"
-                  className={isBackgroundActive ? "bg-emergency hover:bg-emergency/90" : "bg-gradient-to-r from-emergency to-accent"}
-                >
-                  {isBackgroundActive ? (
-                    <>
-                      <PowerOff className="w-4 h-4 mr-2" />
-                      Stop Background
-                    </>
-                  ) : (
-                    <>
-                      <Power className="w-4 h-4 mr-2" />
-                      Start Background
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
+            <Badge 
+              variant="outline" 
+              className={`text-lg px-4 py-2 border-${status.color}/50 text-${status.color} animate-glow`}
+            >
+              <StatusIcon className={`w-5 h-5 mr-2 ${emergencyMode ? 'animate-pulse' : ''}`} />
+              {status.text}
+            </Badge>
           </div>
-          
-          {/* Background Detection Status */}
-          {isBackgroundActive && (
-            <div className="mt-4 flex gap-2 flex-wrap">
-              {detectionStatus.voice && (
-                <Badge variant="outline" className="border-safe/50 text-safe">
-                  <Radio className="w-3 h-3 mr-1" />
-                  Voice Active
-                </Badge>
-              )}
-              {detectionStatus.motion && (
-                <Badge variant="outline" className="border-safe/50 text-safe">
-                  <Activity className="w-3 h-3 mr-1" />
-                  Motion Active
-                </Badge>
-              )}
-              {detectionStatus.camera && (
-                <Badge variant="outline" className="border-safe/50 text-safe">
-                  <Eye className="w-3 h-3 mr-1" />
-                  Camera Active
-                </Badge>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
